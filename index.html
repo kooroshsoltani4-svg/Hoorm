@@ -1,0 +1,2050 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Hoormaan | محاسبه‌گر طلا و سکه</title>
+<meta name="theme-color" content="#0E0E10">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Hoormaan">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E0E10;
+    --surface:#18181B;
+    --surface-2:#212125;
+    --surface-3:#2A2A2F;
+    --line:#302F35;
+    --gold-1:#E9CB86;
+    --gold-2:#B9903F;
+    --gold-3:#7A5C22;
+    --ink:#F3EFE4;
+    --ink-dim:#96938C;
+    --ink-faint:#5E5C58;
+    --good:#6FB78F;
+    --bad:#D97676;
+    --radius:18px;
+    --radius-sm:12px;
+  }
+  [data-theme="light"]{
+    --bg:#F7F4EC;
+    --surface:#FFFFFF;
+    --surface-2:#F1ECDF;
+    --surface-3:#E8E1CE;
+    --line:#E1D9C4;
+    --gold-1:#B9903F;
+    --gold-2:#8C6A28;
+    --gold-3:#6B4E1B;
+    --ink:#221F19;
+    --ink-dim:#6B6558;
+    --ink-faint:#A69C87;
+    --good:#2E8558;
+    --bad:#C23B3B;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Vazirmatn',sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001ms !important; transition-duration:0.001ms !important;}
+  }
+  .app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--bg);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    padding-bottom:82px;
+  }
+
+  /* ---------- Header / ticker ---------- */
+  .header{
+    padding:18px 16px 14px;
+    background:linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+    border-bottom:1px solid var(--line);
+  }
+  .header-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand-mark{
+    width:30px;height:30px;border-radius:50%;
+    background:linear-gradient(135deg,var(--gold-1),var(--gold-3));
+    display:flex;align-items:center;justify-content:center;
+    font-weight:800;font-size:14px;color:#171410;
+  }
+  .brand-name{font-weight:700;font-size:15px;letter-spacing:.2px;}
+  .header-actions{display:flex;gap:8px;align-items:center;}
+  .icon-btn{
+    width:34px;height:34px;border-radius:50%;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-dim);
+    cursor:pointer;
+    font-size:15px;
+  }
+  .icon-btn:active{background:var(--surface-3);}
+  .ticker{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    padding-bottom:2px;
+  }
+  .ticker::-webkit-scrollbar{display:none;}
+  .tick{
+    flex:0 0 auto;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:8px 12px;
+    min-width:98px;
+    cursor:pointer;
+  }
+  .tick-label{font-size:11px;color:var(--ink-dim);margin-bottom:3px;}
+  .tick-value{font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .tick-value input{
+    width:100%;background:transparent;border:none;color:var(--ink);
+    font-family:inherit;font-size:14px;font-weight:700;outline:none;padding:0;
+    font-variant-numeric:tabular-nums;
+  }
+  .tick-sub{font-size:10px;color:var(--ink-faint);margin-top:2px;}
+
+  /* ---------- Main scroll area ---------- */
+  .main{
+    flex:1;
+    padding:16px 16px 24px;
+  }
+  .screen{display:none;}
+  .screen.active{display:block; animation:fadeIn .22s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .section-title{
+    font-size:13px;
+    color:var(--ink-dim);
+    font-weight:600;
+    margin:0 0 10px;
+    letter-spacing:.2px;
+  }
+
+  /* coin type selector */
+  .coin-types{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:6px;
+    margin-bottom:16px;
+  }
+  .coin-type{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:8px 2px;
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-dim);
+    cursor:pointer;
+    line-height:1.5;
+  }
+  .coin-type.active{
+    background:linear-gradient(135deg,var(--gold-1),var(--gold-3));
+    color:#171410;
+    border-color:transparent;
+    font-weight:700;
+  }
+
+  /* sub tabs (sale/purchase) */
+  .subtabs{
+    display:flex;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:4px;
+    margin-bottom:16px;
+  }
+  .subtab{
+    flex:1;
+    text-align:center;
+    padding:9px 0;
+    border-radius:999px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--ink-dim);
+    cursor:pointer;
+  }
+  .subtab.active{
+    background:linear-gradient(135deg,var(--gold-1),var(--gold-2));
+    color:#171410;
+  }
+
+  .mode-link{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--gold-1);
+    margin:-6px 0 16px;
+    cursor:pointer;
+    font-weight:600;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px;
+  }
+
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  .field-label{
+    font-size:12.5px;
+    color:var(--ink-dim);
+    margin-bottom:7px;
+    display:flex;
+    justify-content:space-between;
+  }
+  .field-label .lock-badge{
+    font-size:10.5px;
+    color:var(--gold-1);
+    cursor:pointer;
+  }
+  .input-wrap{
+    display:flex;
+    align-items:center;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+  }
+  .input-wrap input{
+    flex:1;
+    background:transparent;
+    border:none;
+    outline:none;
+    color:var(--ink);
+    font-family:inherit;
+    font-size:16px;
+    font-weight:600;
+    font-variant-numeric:tabular-nums;
+    min-width:0;
+  }
+  .input-suffix{font-size:12px;color:var(--ink-faint); white-space:nowrap; margin-inline-start:6px;}
+  .chips{
+    display:flex;
+    gap:7px;
+    margin-top:8px;
+    flex-wrap:wrap;
+  }
+  .chip{
+    padding:6px 13px;
+    border-radius:999px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    font-size:12.5px;
+    color:var(--ink-dim);
+    cursor:pointer;
+    font-weight:600;
+  }
+  .chip.active{
+    background:var(--gold-3);
+    border-color:var(--gold-2);
+    color:var(--gold-1);
+  }
+  [data-theme="light"] .chip.active{
+    background:var(--gold-1);
+    color:#fff;
+  }
+
+  /* results */
+  .result-card{
+    background:linear-gradient(160deg, var(--surface-2), var(--surface));
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px;
+    margin-bottom:14px;
+  }
+  .breakdown-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:var(--ink-dim);
+    padding:7px 0;
+    border-bottom:1px dashed var(--line);
+  }
+  .breakdown-row:last-of-type{border-bottom:none;}
+  .breakdown-row b{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums;}
+  .final-label{
+    font-size:12.5px;
+    color:var(--ink-dim);
+    margin-top:14px;
+    margin-bottom:4px;
+  }
+  .final-value{
+    font-size:30px;
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(100deg,var(--gold-2) 0%, var(--gold-1) 35%, #FFF3D0 50%, var(--gold-1) 65%, var(--gold-2) 100%);
+    background-size:220% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:shine 5s linear infinite;
+    line-height:1.3;
+  }
+  @keyframes shine{
+    0%{background-position:0% 0;}
+    100%{background-position:220% 0;}
+  }
+  .final-unit{font-size:13px;color:var(--ink-dim); font-weight:600;}
+
+  .actions-row{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-top:6px;
+  }
+  .action-btn{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:10px 4px;
+    text-align:center;
+    font-size:11px;
+    color:var(--ink-dim);
+    cursor:pointer;
+    font-weight:600;
+  }
+  .action-btn:active{background:var(--surface-3);}
+  .action-btn .ic{display:block; font-size:16px; margin-bottom:3px;}
+
+  .primary-btn{
+    width:100%;
+    padding:14px;
+    border-radius:var(--radius-sm);
+    background:linear-gradient(135deg,var(--gold-1),var(--gold-2));
+    color:#171410;
+    font-weight:700;
+    font-size:14.5px;
+    border:none;
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .ghost-btn{
+    width:100%;
+    padding:13px;
+    border-radius:var(--radius-sm);
+    background:transparent;
+    color:var(--ink-dim);
+    font-weight:600;
+    font-size:13.5px;
+    border:1px solid var(--line);
+    cursor:pointer;
+    margin-top:8px;
+  }
+
+  /* history */
+  .search-wrap{
+    display:flex;align-items:center;gap:8px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:11px 15px;
+    margin-bottom:14px;
+  }
+  .search-wrap input{
+    flex:1;background:transparent;border:none;outline:none;color:var(--ink);font-family:inherit;font-size:13.5px;
+  }
+  .hist-filters{display:flex; gap:6px; margin-bottom:14px; overflow-x:auto;}
+  .hist-item{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:13px 15px;
+    margin-bottom:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+  .hist-item-type{
+    font-size:11px;
+    color:var(--gold-1);
+    font-weight:700;
+    margin-bottom:4px;
+  }
+  .hist-item-desc{font-size:12.5px; color:var(--ink-dim);}
+  .hist-item-price{font-size:15px; font-weight:700; font-variant-numeric:tabular-nums; margin-top:3px;}
+  .hist-item-actions{display:flex; gap:6px;}
+  .hist-icon{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--surface-2);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px; color:var(--ink-dim); cursor:pointer; border:1px solid var(--line);
+  }
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--ink-faint);
+  }
+  .empty-state .ic{font-size:34px; display:block; margin-bottom:10px;}
+
+  /* settings */
+  .setting-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .setting-row:last-child{border-bottom:none;}
+  .setting-label{font-size:13.5px; font-weight:600;}
+  .setting-sub{font-size:11.5px; color:var(--ink-faint); margin-top:2px;}
+  .setting-input{
+    width:78px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:8px 10px;
+    text-align:center;
+    color:var(--ink);
+    font-family:inherit;
+    font-weight:700;
+    font-size:13.5px;
+    outline:none;
+  }
+  .switch{
+    width:46px;height:26px;border-radius:999px;
+    background:var(--surface-3);
+    border:1px solid var(--line);
+    position:relative;cursor:pointer;flex:0 0 auto;
+  }
+  .switch.on{background:linear-gradient(135deg,var(--gold-1),var(--gold-2)); border-color:transparent;}
+  .switch .knob{
+    position:absolute; top:2px; right:2px;
+    width:20px;height:20px;border-radius:50%;background:#fff;
+    transition:transform .18s ease;
+  }
+  .switch.on .knob{transform:translateX(-20px);}
+  .seg{
+    display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;
+  }
+  .seg-opt{padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;color:var(--ink-dim);cursor:pointer;}
+  .seg-opt.active{background:linear-gradient(135deg,var(--gold-1),var(--gold-2));color:#171410;}
+
+  /* bottom nav */
+  .bottom-nav{
+    position:fixed;
+    bottom:0;
+    width:100%;
+    max-width:480px;
+    background:var(--surface);
+    border-top:1px solid var(--line);
+    display:flex;
+    padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+    z-index:10;
+  }
+  .nav-item{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    padding:6px 0;
+    cursor:pointer;
+    color:var(--ink-faint);
+  }
+  .nav-item .ic{font-size:19px;}
+  .nav-item .lb{font-size:10.5px;font-weight:600;}
+  .nav-item.active{color:var(--gold-1);}
+
+  .toast{
+    position:fixed;
+    bottom:96px;
+    left:50%;
+    transform:translateX(-50%) translateY(10px);
+    background:var(--surface-3);
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 18px;
+    border-radius:999px;
+    font-size:12.5px;
+    font-weight:600;
+    opacity:0;
+    pointer-events:none;
+    transition:all .25s ease;
+    z-index:50;
+    white-space:nowrap;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  .quick-note{
+    font-size:11.5px;
+    color:var(--ink-faint);
+    text-align:center;
+    margin:10px 0 2px;
+    line-height:1.7;
+  }
+
+  /* ---------- select dropdown ---------- */
+  .select-input{
+    width:100%;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-sm);
+    padding:12px 14px;
+    color:var(--ink);
+    font-family:'Vazirmatn',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    outline:none;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:linear-gradient(45deg, transparent 50%, var(--gold-1) 50%), linear-gradient(135deg, var(--gold-1) 50%, transparent 50%);
+    background-position: calc(100% - 22px) center, calc(100% - 16px) center;
+    background-size: 6px 6px, 6px 6px;
+    background-repeat:no-repeat;
+    cursor:pointer;
+  }
+  .select-input option{ background:var(--surface-2); color:var(--ink); }
+
+  /* ---------- price mode bar (online/manual + lock) ---------- */
+  .price-mode-bar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    margin-bottom:7px;
+  }
+  .seg-mini{
+    display:flex;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:3px;
+    flex:1;
+  }
+  .seg-mini-opt{
+    flex:1;
+    text-align:center;
+    padding:6px 4px;
+    border-radius:999px;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--ink-dim);
+    cursor:pointer;
+  }
+  .seg-mini-opt.active{
+    background:linear-gradient(135deg,var(--gold-1),var(--gold-2));
+    color:#171410;
+  }
+  .icon-btn-sm{
+    width:32px;height:32px;flex:0 0 auto;
+    border-radius:50%;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+    color:var(--ink-dim);
+    cursor:pointer;
+  }
+  .icon-btn-sm.locked{ background:var(--gold-3); border-color:var(--gold-2); color:var(--gold-1); }
+  .icon-btn-sm.hidden-slot{ visibility:hidden; }
+
+  /* ---------- settings nav row (link-style, e.g. تابلو) ---------- */
+  .setting-row.link{ cursor:pointer; }
+  .setting-row.link .chev{ color:var(--ink-faint); font-size:16px; }
+
+  /* ---------- fullscreen board ---------- */
+  .board-overlay{
+    position:fixed;
+    inset:0;
+    background:radial-gradient(120% 120% at 50% -10%, #26221a 0%, #0B0B0C 60%);
+    z-index:200;
+    display:none;
+    flex-direction:column;
+    color:var(--gold-1);
+    font-family:'Vazirmatn',sans-serif;
+  }
+  .board-overlay.active{ display:flex; }
+  .board-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:clamp(14px,2.5vh,28px) clamp(18px,3vw,40px) 0;
+  }
+  .board-shop-name{
+    font-size:clamp(16px,2.4vw,28px);
+    font-weight:700;
+    color:#F3EFE4;
+    letter-spacing:.5px;
+  }
+  .board-clock{
+    font-size:clamp(12px,1.6vw,18px);
+    color:var(--ink-faint);
+    font-variant-numeric:tabular-nums;
+  }
+  .board-exit{
+    position:absolute;
+    top:clamp(10px,2vh,22px);
+    left:clamp(10px,2vw,28px);
+    width:36px;height:36px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.12);
+    color:#B9B4A8;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    font-size:15px;
+    z-index:5;
+  }
+  .board-grid{
+    flex:1;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-auto-rows:1fr;
+    gap:clamp(10px,1.6vw,22px);
+    padding:clamp(16px,2.5vh,32px) clamp(18px,3vw,40px) clamp(20px,3vh,36px);
+  }
+  @media (max-aspect-ratio: 4/5){
+    .board-grid{ grid-template-columns:repeat(2,1fr); }
+  }
+  .board-tile{
+    background:linear-gradient(160deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+    border:1px solid rgba(233,203,134,0.18);
+    border-radius:clamp(12px,1.4vw,20px);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:clamp(4px,1vh,10px);
+    padding:8px;
+    text-align:center;
+  }
+  .board-tile-label{
+    font-size:clamp(12px,1.6vw,20px);
+    color:#C9C4B6;
+    font-weight:600;
+  }
+  .board-tile-value{
+    font-size:clamp(20px,4vw,52px);
+    font-weight:800;
+    font-variant-numeric:tabular-nums;
+    background:linear-gradient(100deg,var(--gold-2) 0%, var(--gold-1) 35%, #FFF3D0 50%, var(--gold-1) 65%, var(--gold-2) 100%);
+    background-size:220% 100%;
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    animation:shine 6s linear infinite;
+    line-height:1.2;
+  }
+  .board-tile-unit{
+    font-size:clamp(10px,1.2vw,15px);
+    color:#8A8578;
+  }
+  .board-footer{
+    text-align:center;
+    font-size:clamp(10px,1.2vw,14px);
+    color:#6B6658;
+    padding-bottom:clamp(10px,2vh,20px);
+  }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <div class="header">
+    <div class="header-top">
+      <div class="brand">
+        <div class="brand-mark">ز</div>
+        <div class="brand-name">Hoormaan</div>
+      </div>
+      <div class="header-actions">
+        <div class="icon-btn" id="themeBtn" title="حالت شب/روز">◐</div>
+      </div>
+    </div>
+    <div class="ticker" id="ticker"></div>
+  </div>
+
+  <div class="main">
+
+    <!-- ===== GOLD SCREEN ===== -->
+    <div class="screen active" id="screen-gold">
+      <div class="subtabs">
+        <div class="subtab active" data-goldmode="sale">فروش طلا</div>
+        <div class="subtab" data-goldmode="purchase">خرید طلا</div>
+      </div>
+
+      <div id="gold-sale-view">
+        <div class="mode-link" id="goldReverseToggle">🔄 محاسبه معکوس (بودجه → وزن)</div>
+
+        <div class="card" id="gold-sale-normal">
+          <div class="field">
+            <div class="field-label"><span>وزن (گرم)</span></div>
+            <div class="input-wrap"><input type="number" inputmode="decimal" id="gs-weight" placeholder="مثلاً ۵.۲"><span class="input-suffix">گرم</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>قیمت پایه هر گرم (۱۸ عیار)</span></div>
+            <div class="price-mode-bar">
+              <div class="seg-mini" data-price-seg="gs">
+                <div class="seg-mini-opt active" data-mode="online">آنلاین</div>
+                <div class="seg-mini-opt" data-mode="manual">دستی</div>
+              </div>
+              <div class="icon-btn-sm" data-price-lock="gs" title="قفل قیمت">🔓</div>
+            </div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="gs-price"><span class="input-suffix" id="gs-price-unit">تومان</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>اجرت</span></div>
+            <select class="select-input" id="gs-wage"></select>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>سود</span></div>
+            <select class="select-input" id="gs-profit-select"></select>
+            <div class="input-wrap" id="gs-profit-manual-wrap" style="display:none; margin-top:8px;">
+              <input type="number" inputmode="decimal" id="gs-profit-manual" placeholder="درصد دلخواه"><span class="input-suffix">٪</span>
+            </div>
+            <input type="hidden" id="gs-profit">
+          </div>
+          <div class="field">
+            <div class="field-label"><span>مالیات</span></div>
+            <select class="select-input" id="gs-tax">
+              <option value="wage_profit_9">۹٪ روی (اجرت + سود)</option>
+              <option value="total_1">۱٪ روی کل مبلغ</option>
+              <option value="total_2">۲٪ روی کل مبلغ</option>
+              <option value="total_3">۳٪ روی کل مبلغ</option>
+              <option value="none">بدون مالیات</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card" id="gold-sale-reverse" style="display:none;">
+          <div class="field">
+            <div class="field-label"><span>بودجه مشتری</span></div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="gr-budget" placeholder="مبلغ به تومان"><span class="input-suffix" id="gr-budget-unit">تومان</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>قیمت پایه هر گرم (۱۸ عیار)</span></div>
+            <div class="price-mode-bar">
+              <div class="seg-mini" data-price-seg="gr">
+                <div class="seg-mini-opt active" data-mode="online">آنلاین</div>
+                <div class="seg-mini-opt" data-mode="manual">دستی</div>
+              </div>
+              <div class="icon-btn-sm" data-price-lock="gr" title="قفل قیمت">🔓</div>
+            </div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="gr-price"><span class="input-suffix">تومان</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>اجرت</span></div>
+            <select class="select-input" id="gr-wage"></select>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>سود</span></div>
+            <select class="select-input" id="gr-profit-select"></select>
+            <div class="input-wrap" id="gr-profit-manual-wrap" style="display:none; margin-top:8px;">
+              <input type="number" inputmode="decimal" id="gr-profit-manual" placeholder="درصد دلخواه"><span class="input-suffix">٪</span>
+            </div>
+            <input type="hidden" id="gr-profit">
+          </div>
+          <div class="field">
+            <div class="field-label"><span>مالیات</span></div>
+            <select class="select-input" id="gr-tax">
+              <option value="wage_profit_9">۹٪ روی (اجرت + سود)</option>
+              <option value="total_1">۱٪ روی کل مبلغ</option>
+              <option value="total_2">۲٪ روی کل مبلغ</option>
+              <option value="total_3">۳٪ روی کل مبلغ</option>
+              <option value="none">بدون مالیات</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="result-card" id="gs-result"></div>
+      </div>
+
+      <div id="gold-purchase-view" style="display:none;">
+        <div class="card">
+          <div class="field">
+            <div class="field-label"><span>وزن (گرم)</span></div>
+            <div class="input-wrap"><input type="number" inputmode="decimal" id="gp-weight"><span class="input-suffix">گرم</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>نرخ خرید (هر گرم)</span></div>
+            <div class="price-mode-bar">
+              <div class="seg-mini" data-price-seg="gp">
+                <div class="seg-mini-opt active" data-mode="online">آنلاین</div>
+                <div class="seg-mini-opt" data-mode="manual">دستی</div>
+              </div>
+              <div class="icon-btn-sm" data-price-lock="gp" title="قفل قیمت">🔓</div>
+            </div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="gp-price"><span class="input-suffix">تومان</span></div>
+          </div>
+        </div>
+        <p class="quick-note">در حالت آنلاین، نرخ خرید = نرخ فروش هر گرم − اختلاف تعیین‌شده در تنظیمات؛ در حالت دستی خودتان مستقیم وارد می‌کنید.</p>
+        <div class="result-card" id="gp-result"></div>
+      </div>
+    </div>
+
+    <!-- ===== COIN SCREEN ===== -->
+    <div class="screen" id="screen-coin">
+      <div class="section-title">نوع سکه</div>
+      <div class="coin-types" id="coinTypes"></div>
+
+      <div class="subtabs">
+        <div class="subtab active" data-coinmode="sale">فروش</div>
+        <div class="subtab" data-coinmode="purchase">خرید</div>
+      </div>
+
+      <div id="coin-sale-view">
+        <div class="mode-link" id="coinReverseToggle">🔄 محاسبه معکوس (بودجه → تعداد)</div>
+
+        <div class="card" id="coin-sale-normal">
+          <div class="field">
+            <div class="field-label"><span>تعداد</span></div>
+            <div class="input-wrap"><input type="number" inputmode="numeric" id="cs-qty" value="1"><span class="input-suffix">عدد</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>قیمت واحد</span></div>
+            <div class="price-mode-bar">
+              <div class="seg-mini" data-price-seg="cs">
+                <div class="seg-mini-opt active" data-mode="online">آنلاین</div>
+                <div class="seg-mini-opt" data-mode="manual">دستی</div>
+              </div>
+              <div class="icon-btn-sm" data-price-lock="cs" title="قفل قیمت">🔓</div>
+            </div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="cs-price"><span class="input-suffix">تومان</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>سود فروش</span></div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="cs-profit"><span class="input-suffix">تومان/سکه</span></div>
+          </div>
+        </div>
+
+        <div class="card" id="coin-sale-reverse" style="display:none;">
+          <div class="field">
+            <div class="field-label"><span>بودجه مشتری</span></div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="cr-budget"><span class="input-suffix">تومان</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>قیمت واحد</span></div>
+            <div class="price-mode-bar">
+              <div class="seg-mini" data-price-seg="cr">
+                <div class="seg-mini-opt active" data-mode="online">آنلاین</div>
+                <div class="seg-mini-opt" data-mode="manual">دستی</div>
+              </div>
+              <div class="icon-btn-sm" data-price-lock="cr" title="قفل قیمت">🔓</div>
+            </div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="cr-price"><span class="input-suffix">تومان</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>سود فروش</span></div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="cr-profit"><span class="input-suffix">تومان/سکه</span></div>
+          </div>
+        </div>
+
+        <div class="result-card" id="cs-result"></div>
+      </div>
+
+      <div id="coin-purchase-view" style="display:none;">
+        <div class="card">
+          <div class="field">
+            <div class="field-label"><span>تعداد</span></div>
+            <div class="input-wrap"><input type="number" inputmode="numeric" id="cp-qty" value="1"><span class="input-suffix">عدد</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>قیمت واحد</span></div>
+            <div class="price-mode-bar">
+              <div class="seg-mini" data-price-seg="cp">
+                <div class="seg-mini-opt active" data-mode="online">آنلاین</div>
+                <div class="seg-mini-opt" data-mode="manual">دستی</div>
+              </div>
+              <div class="icon-btn-sm" data-price-lock="cp" title="قفل قیمت">🔓</div>
+            </div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="cp-price"><span class="input-suffix">تومان</span></div>
+          </div>
+          <div class="field">
+            <div class="field-label"><span>سود خرید</span></div>
+            <div class="input-wrap"><input type="text" inputmode="decimal" id="cp-margin"><span class="input-suffix">تومان/سکه</span></div>
+          </div>
+        </div>
+        <div class="result-card" id="cp-result"></div>
+      </div>
+    </div>
+
+    <!-- ===== HISTORY SCREEN ===== -->
+    <div class="screen" id="screen-history">
+      <div class="search-wrap">
+        <span>🔍</span>
+        <input type="text" id="histSearch" placeholder="جستجو در تاریخچه...">
+      </div>
+      <div class="hist-filters" id="histFilters"></div>
+      <div id="histList"></div>
+    </div>
+
+    <!-- ===== SETTINGS SCREEN ===== -->
+    <div class="screen" id="screen-settings">
+      <div class="section-title">پیش‌فرض‌های فروش طلا</div>
+      <div class="card">
+        <div class="setting-row">
+          <div><div class="setting-label">اجرت پیش‌فرض</div><div class="setting-sub">گزینه‌ی از پیش انتخاب‌شده در صفحه فروش</div></div>
+          <select class="select-input" id="set-wage" style="width:130px; padding:8px 10px; font-size:13.5px;"></select>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">سود پیش‌فرض</div><div class="setting-sub">برای فروش طلا</div></div>
+          <input class="setting-input" type="number" id="set-profit">
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">حالت مالیات پیش‌فرض</div><div class="setting-sub">نحوهٔ محاسبهٔ مالیات در فروش طلا</div></div>
+          <select class="select-input" id="set-tax-mode" style="width:180px; padding:8px 10px; font-size:13px;">
+            <option value="wage_profit_9">۹٪ روی (اجرت + سود)</option>
+            <option value="total_1">۱٪ روی کل مبلغ</option>
+            <option value="total_2">۲٪ روی کل مبلغ</option>
+            <option value="total_3">۳٪ روی کل مبلغ</option>
+            <option value="none">بدون مالیات</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section-title">خرید طلا از مشتری</div>
+      <div class="card">
+        <div class="setting-row">
+          <div><div class="setting-label">اختلاف نرخ خرید از فروش</div><div class="setting-sub">چند تومان پایین‌تر از نرخ فروش هر گرم (تابلو) — نرخ خرید = فروش − این عدد</div></div>
+          <input class="setting-input" type="text" inputmode="decimal" id="set-gold-purchase-discount" style="width:96px;">
+        </div>
+        <p class="quick-note" style="margin-top:2px;">مثال: اگر این عدد را ۴۰۰٬۰۰۰ بگذارید، نرخ خرید آنلاین همیشه ۴۰۰٬۰۰۰ تومان کمتر از نرخ فروش هر گرم محاسبه می‌شود. در حالت دستی هم می‌توانید نرخ خرید را خودتان مستقیم وارد کنید.</p>
+      </div>
+
+      <div class="section-title">قیمت آنلاین / دستی</div>
+      <div class="card">
+        <div class="setting-row">
+          <div><div class="setting-label">حالت پیش‌فرض هنگام ورود به برنامه</div><div class="setting-sub">برای قیمت طلا (فروش، معکوس و خرید)</div></div>
+          <div class="seg" id="seg-default-price-mode">
+            <div class="seg-opt" data-price-default="online">آنلاین</div>
+            <div class="seg-opt" data-price-default="manual">دستی</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">سود سکه (خرید و فروش) — تومانی</div>
+      <div class="card">
+        <div class="setting-row">
+          <div><div class="setting-label">سود پیش‌فرض فروش</div><div class="setting-sub">مبلغ ثابت، به تومان به‌ازای هر سکه</div></div>
+          <input class="setting-input" type="text" inputmode="decimal" id="set-coin-sale-profit" style="width:96px;">
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">سود پیش‌فرض خرید</div><div class="setting-sub">مبلغ ثابت، به تومان به‌ازای هر سکه</div></div>
+          <input class="setting-input" type="text" inputmode="decimal" id="set-coin-purchase-margin" style="width:96px;">
+        </div>
+        <p class="quick-note" style="margin-top:2px;">این مقدار به‌صورت خودکار روی فیلد سود در صفحه‌ی اصلی سکه اعمال می‌شود؛ همان‌جا هم قابل تغییر دستی است.</p>
+      </div>
+
+      <div class="section-title">نمایش</div>
+      <div class="card">
+        <div class="setting-row">
+          <div><div class="setting-label">واحد پول</div></div>
+          <div class="seg" id="seg-currency">
+            <div class="seg-opt" data-unit="toman">تومان</div>
+            <div class="seg-opt" data-unit="rial">ریال</div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">حالت نمایش</div></div>
+          <div class="seg" id="seg-theme">
+            <div class="seg-opt" data-theme-opt="dark">شب</div>
+            <div class="seg-opt" data-theme-opt="light">روز</div>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">گرد کردن قیمت نهایی</div><div class="setting-sub">فقط رو به بالا گرد می‌شود</div></div>
+          <div class="seg" id="seg-round">
+            <div class="seg-opt" data-round="off">خاموش</div>
+            <div class="seg-opt" data-round="50k">۵۰ هزار</div>
+            <div class="seg-opt" data-round="100k">۱۰۰ هزار</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">تابلوی فروشگاه</div>
+      <div class="card">
+        <div class="setting-row link" id="openBoardBtn">
+          <div><div class="setting-label">تابلو</div><div class="setting-sub">نمایش تمام‌صفحه‌ی قیمت‌ها — مناسب تلویزیون یا مانیتور فروشگاه</div></div>
+          <span class="chev">‹</span>
+        </div>
+      </div>
+
+
+      <div class="section-title">درباره این نسخه</div>
+      <div class="card">
+        <p class="quick-note" style="margin:0 0 8px;">
+          نسخهٔ وب Hoormaan — حالت دستی/آنلاین، تنظیمات و قیمت‌های دستی واردشده در حافظهٔ مرورگر (localStorage) ذخیره می‌شوند و با رفرش یا بستن/باز کردن صفحه حفظ می‌شوند.
+          تاریخچهٔ محاسبات فقط در همین بازدید نگه‌داری می‌شود (با رفرش پاک می‌شود).
+        </p>
+        <div class="setting-row link" id="clearStorageBtn" style="margin-top:8px;">
+          <div><div class="setting-label" style="color:var(--bad);">پاک کردن همهٔ داده‌های ذخیره‌شده</div><div class="setting-sub">حالت دستی/آنلاین، قیمت‌های دستی و تنظیمات پیش‌فرض پاک می‌شوند</div></div>
+          <span class="chev" style="color:var(--bad);">🗑</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item active" data-screen="gold"><span class="ic">◆</span><span class="lb">طلا</span></div>
+    <div class="nav-item" data-screen="coin"><span class="ic">●</span><span class="lb">سکه</span></div>
+    <div class="nav-item" data-screen="history"><span class="ic">🕐</span><span class="lb">تاریخچه</span></div>
+    <div class="nav-item" data-screen="settings"><span class="ic">⚙</span><span class="lb">تنظیمات</span></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<div class="board-overlay" id="boardOverlay">
+  <div class="board-exit" id="boardExit">✕</div>
+  <div class="board-header">
+    <div class="board-shop-name" id="boardShopName">Hoormaan</div>
+    <div class="board-clock" id="boardClock"></div>
+  </div>
+  <div class="board-grid" id="boardGrid"></div>
+  <div class="board-footer">قیمت‌ها به تومان — بروزرسانی دستی از پنل مدیریت</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- STATE (in-memory only — no browser storage in this preview build) ---------------- */
+  const state = {
+    theme: lsGet('theme', 'dark'),
+    currency: lsGet('currency', 'toman'),
+    round: lsGet('round', 'off'), // off | 50k | 100k
+    priceLocked: false,
+    purchasePriceLocked: false,
+    coinPriceLocked: false,
+    goldPriceMode: lsGet('goldPriceMode', lsGet('defaultPriceMode', 'online')),
+    purchasePriceMode: lsGet('purchasePriceMode', lsGet('defaultPriceMode', 'online')),
+    coinPriceMode: lsGet('coinPriceMode', lsGet('defaultPriceMode', 'online')),
+    defaultPriceMode: lsGet('defaultPriceMode', 'online'),
+    shopName: 'Hoormaan',
+    prices: {
+      gold18: 6850000,
+      gold24: 9130000,
+      ounce: 2380,
+      usd: 92000,
+      emami: 78500000,
+      bahar: 76200000,
+      half: 41500000,
+      quarter: 24800000,
+      gerami: 16200000
+    },
+    defaults:{
+      profit: lsGet('defaultProfit', 7),
+      tax: lsGet('defaultTax', 9),
+      taxMode: lsGet('defaultTaxMode', 'wage_profit_9'), // wage_profit_9 | total_1 | total_2 | total_3 | none
+      wage: lsGet('defaultWage', 9),
+      goldPurchaseDiscount: lsGet('goldPurchaseDiscount', 400000),
+      coinSaleProfit: lsGet('coinSaleProfit', 500000),
+      coinPurchaseMargin: lsGet('coinPurchaseMargin', 300000)
+    },
+    goldMode:'sale',
+    goldReverse:false,
+    coinType:'emami',
+    coinMode:'sale',
+    coinReverse:false,
+    history:[]
+  };
+
+  /* ---------------- LOCAL STORAGE PERSISTENCE ---------------- */
+  const LS_KEY = 'zarsanj_v1';
+  function lsLoad(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch(e){ return null; }
+  }
+  function lsSave(obj){
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(obj)); }catch(e){}
+  }
+  function lsGet(key, fallback){ const d=lsLoad(); return d&&d[key]!==undefined?d[key]:fallback; }
+  function lsSet(key, value){ const d=lsLoad()||{}; d[key]=value; lsSave(d); }
+
+
+  const WAGE_OPTIONS = [
+    {value:0, label:'بدون اجرت'},
+    {value:4, label:'4%'},
+    {value:6, label:'6%'},
+    {value:8, label:'8%'},
+    {value:10, label:'10%'},
+    {value:12, label:'12%'},
+    {value:14, label:'14%'},
+    {value:16, label:'16%'},
+    {value:18, label:'18%'},
+    {value:20, label:'20%'}
+  ];
+  const PROFIT_PRESETS = [2, 2.5, 3, 5, 7];
+
+  const coinMeta = {
+    emami:{label:'امامی'}, bahar:{label:'بهار آزادی'}, half:{label:'نیم سکه'},
+    quarter:{label:'ربع سکه'}, gerami:{label:'گرمی'}
+  };
+
+  /* ---------------- HELPERS ---------------- */
+  function fmt(n){
+    if(n===null || n===undefined || isNaN(n)) return '—';
+    let rounded = n;
+    switch(state.round){
+      case '50k':
+        rounded = Math.ceil(n / 50000) * 50000;
+        break;
+      case '100k':
+        rounded = Math.ceil(n / 100000) * 100000;
+        break;
+      case 'off':
+      default:
+        rounded = n;
+        break;
+    }
+    return rounded.toLocaleString('fa-IR', {maximumFractionDigits: state.round==='off'?2:0});
+  }
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._h);
+    toast._h = setTimeout(()=>t.classList.remove('show'), 1600);
+  }
+  function num(el){ const v = parseFloat(el.value); return isNaN(v) ? 0 : v; }
+  function copyText(text){
+    if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>toast('کپی شد ✓')); }
+    else toast('کپی شد ✓');
+  }
+  function shareText(title, text){
+    if(navigator.share){ navigator.share({title, text}).catch(()=>{}); }
+    else copyText(text);
+  }
+
+  /* ---- Money-formatted text inputs: show live 3-digit grouping while typing ---- */
+  function stripToRaw(str){
+    let s = String(str).replace(/[^\d.]/g,'');
+    const parts = s.split('.');
+    if(parts.length>2) s = parts[0]+'.'+parts.slice(1).join('');
+    return s;
+  }
+  function groupDigits(str){
+    return str.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function formatMoneyDisplay(raw){
+    if(raw==='' || raw===undefined) return '';
+    let [intPart, decPart] = raw.split('.');
+    intPart = (intPart||'').replace(/^0+(?=\d)/,'');
+    let out = groupDigits(intPart||'0');
+    if(decPart!==undefined) out += '.'+decPart;
+    return out;
+  }
+  function wireMoneyInput(el, onChange){
+    el.addEventListener('input', ()=>{
+      const caretFromEnd = el.value.length - (el.selectionStart||el.value.length);
+      const raw = stripToRaw(el.value);
+      el.dataset.raw = raw;
+      el.value = formatMoneyDisplay(raw);
+      const pos = Math.max(0, el.value.length - caretFromEnd);
+      try{ el.setSelectionRange(pos,pos); }catch(e){}
+      if(onChange) onChange();
+    });
+  }
+  function moneyVal(el){
+    const raw = el.dataset.raw!==undefined ? el.dataset.raw : stripToRaw(el.value);
+    const v = parseFloat(raw);
+    return isNaN(v) ? 0 : v;
+  }
+  function setMoneyValue(el, value){
+    const raw = (value===null||value===undefined||isNaN(value)) ? '' : String(value);
+    el.dataset.raw = raw;
+    el.value = formatMoneyDisplay(raw);
+  }
+
+  /* ---------------- TICKER ---------------- */
+  const tickerDefs = [
+    {key:'gold18', label:'طلای ۱۸ عیار', unit:'تومان/گرم'},
+    {key:'gold24', label:'طلای ۲۴ عیار', unit:'تومان/گرم'},
+    {key:'goldPurchaseRate', label:'نرخ خرید طلا', unit:'تومان/گرم', computed:true},
+    {key:'ounce', label:'اونس جهانی', unit:'دلار'},
+    {key:'usd', label:'دلار', unit:'تومان'},
+    {key:'emami', label:'سکه امامی', unit:'تومان'},
+    {key:'bahar', label:'بهار آزادی', unit:'تومان'},
+    {key:'half', label:'نیم سکه', unit:'تومان'},
+    {key:'quarter', label:'ربع سکه', unit:'تومان'},
+    {key:'gerami', label:'سکه گرمی', unit:'تومان'}
+  ];
+  function computeGoldPurchaseRate(){
+    return state.prices.gold18 - state.defaults.goldPurchaseDiscount;
+  }
+  function renderTicker(){
+    const wrap = document.getElementById('ticker');
+    wrap.innerHTML = '';
+    tickerDefs.forEach(d=>{
+      const el = document.createElement('div');
+      el.className = 'tick';
+      if(d.computed){
+        el.innerHTML = `<div class="tick-label">${d.label}</div>
+          <div class="tick-value" id="tick-computed-${d.key}">${fmt(computeGoldPurchaseRate())}</div>
+          <div class="tick-sub">${d.unit} · فروش − اختلاف تنظیمات</div>`;
+      } else {
+        el.innerHTML = `<div class="tick-label">${d.label}</div>
+          <div class="tick-value"><input type="text" inputmode="decimal" data-price="${d.key}"></div>
+          <div class="tick-sub">${d.unit} · دستی</div>`;
+      }
+      wrap.appendChild(el);
+    });
+    wrap.querySelectorAll('input[data-price]').forEach(inp=>{
+      setMoneyValue(inp, state.prices[inp.dataset.price]);
+      wireMoneyInput(inp, ()=>{
+        state.prices[inp.dataset.price] = moneyVal(inp);
+        syncPricesIntoForms();
+        computeAll();
+        refreshComputedTicker();
+        renderBoard();
+      });
+    });
+  }
+  function refreshComputedTicker(){
+    const el = document.getElementById('tick-computed-goldPurchaseRate');
+    if(el) el.textContent = fmt(computeGoldPurchaseRate());
+  }
+
+  function syncPricesIntoForms(){
+    if(state.goldPriceMode==='online' && !state.priceLocked){
+      setMoneyValue(document.getElementById('gs-price'), state.prices.gold18);
+      setMoneyValue(document.getElementById('gr-price'), state.prices.gold18);
+    }
+    if(state.purchasePriceMode==='online' && !state.purchasePriceLocked){
+      setMoneyValue(document.getElementById('gp-price'), computeGoldPurchaseRate());
+    }
+    if(state.coinPriceMode==='online' && !state.coinPriceLocked){
+      const cp = state.prices[state.coinType];
+      setMoneyValue(document.getElementById('cs-price'), cp);
+      setMoneyValue(document.getElementById('cr-price'), cp);
+      setMoneyValue(document.getElementById('cp-price'), cp);
+    }
+    if(state.goldPriceMode==='manual'){
+      const gsPrice = document.getElementById('gs-price');
+      const grPrice = document.getElementById('gr-price');
+      const savedGold = lsGet('manualGoldPrice', null);
+      if(savedGold!==null && savedGold>0){
+        if(!gsPrice.value) setMoneyValue(gsPrice, savedGold);
+        if(!grPrice.value) setMoneyValue(grPrice, savedGold);
+      }
+    }
+    if(state.purchasePriceMode==='manual'){
+      const gpPrice = document.getElementById('gp-price');
+      const savedPurchase = lsGet('manualPurchasePrice', null);
+      if(savedPurchase!==null && savedPurchase>0 && !gpPrice.value){
+        setMoneyValue(gpPrice, savedPurchase);
+      }
+    }
+    if(state.coinPriceMode==='manual'){
+      const csPrice = document.getElementById('cs-price');
+      const crPrice = document.getElementById('cr-price');
+      const cpPrice = document.getElementById('cp-price');
+      const savedCoin = lsGet('manualCoinPrice_'+state.coinType, null);
+      if(savedCoin!==null && savedCoin>0){
+        if(!csPrice.value) setMoneyValue(csPrice, savedCoin);
+        if(!crPrice.value) setMoneyValue(crPrice, savedCoin);
+        if(!cpPrice.value) setMoneyValue(cpPrice, savedCoin);
+      }
+    }
+  }
+
+  /* ---------------- PRICE MODE (online/manual) + LOCK ---------------- */
+  function clearField(el){
+    if(!el) return;
+    el.dataset.raw = '';
+    el.value = '';
+  }
+  function applyPriceModeUI(){
+    // gold sale + reverse share one mode & one lock
+    document.querySelectorAll('[data-price-seg="gs"] .seg-mini-opt, [data-price-seg="gr"] .seg-mini-opt').forEach(o=>{
+      o.classList.toggle('active', o.dataset.mode===state.goldPriceMode);
+    });
+    document.querySelectorAll('[data-price-lock="gs"], [data-price-lock="gr"]').forEach(btn=>{
+      btn.style.display = state.goldPriceMode==='online' ? '' : 'none';
+      btn.classList.toggle('locked', state.priceLocked);
+      btn.textContent = state.priceLocked ? '🔒' : '🔓';
+    });
+    const goldReadOnly = state.goldPriceMode==='online' && !state.priceLocked;
+    ['gs-price','gr-price'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.readOnly = goldReadOnly; el.style.opacity = goldReadOnly ? '0.65' : '1';
+    });
+
+    // gold purchase rate — independent toggle, own lock
+    document.querySelectorAll('[data-price-seg="gp"] .seg-mini-opt').forEach(o=>{
+      o.classList.toggle('active', o.dataset.mode===state.purchasePriceMode);
+    });
+    document.querySelectorAll('[data-price-lock="gp"]').forEach(btn=>{
+      btn.style.display = state.purchasePriceMode==='online' ? '' : 'none';
+      btn.classList.toggle('locked', state.purchasePriceLocked);
+      btn.textContent = state.purchasePriceLocked ? '🔒' : '🔓';
+    });
+    const gpReadOnly = state.purchasePriceMode==='online' && !state.purchasePriceLocked;
+    const gpPriceEl = document.getElementById('gp-price');
+    gpPriceEl.readOnly = gpReadOnly;
+    gpPriceEl.style.opacity = gpReadOnly ? '0.65' : '1';
+
+    // coin sale + reverse + purchase share one mode & one lock (same market price)
+    document.querySelectorAll('[data-price-seg="cs"] .seg-mini-opt, [data-price-seg="cr"] .seg-mini-opt, [data-price-seg="cp"] .seg-mini-opt').forEach(o=>{
+      o.classList.toggle('active', o.dataset.mode===state.coinPriceMode);
+    });
+    document.querySelectorAll('[data-price-lock="cs"], [data-price-lock="cr"], [data-price-lock="cp"]').forEach(btn=>{
+      btn.style.display = state.coinPriceMode==='online' ? '' : 'none';
+      btn.classList.toggle('locked', state.coinPriceLocked);
+      btn.textContent = state.coinPriceLocked ? '🔒' : '🔓';
+    });
+    const coinReadOnly = state.coinPriceMode==='online' && !state.coinPriceLocked;
+    ['cs-price','cr-price','cp-price'].forEach(id=>{
+      const el = document.getElementById(id);
+      el.readOnly = coinReadOnly; el.style.opacity = coinReadOnly ? '0.65' : '1';
+    });
+  }
+
+  document.querySelectorAll('[data-price-seg="gs"] .seg-mini-opt, [data-price-seg="gr"] .seg-mini-opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      state.goldPriceMode = o.dataset.mode;
+      lsSet('goldPriceMode', state.goldPriceMode);
+      if(state.goldPriceMode==='manual'){
+        clearField(document.getElementById('gs-price'));
+        clearField(document.getElementById('gr-price'));
+        lsSet('manualGoldPrice', null);
+      } else {
+        syncPricesIntoForms();
+      }
+      applyPriceModeUI();
+      renderGoldSaleResult();
+    });
+  });
+  document.querySelectorAll('[data-price-lock="gs"], [data-price-lock="gr"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.priceLocked = !state.priceLocked;
+      applyPriceModeUI();
+      toast(state.priceLocked ? 'قیمت طلا قفل شد' : 'قفل قیمت باز شد');
+    });
+  });
+  document.querySelectorAll('[data-price-seg="gp"] .seg-mini-opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      state.purchasePriceMode = o.dataset.mode;
+      lsSet('purchasePriceMode', state.purchasePriceMode);
+      if(state.purchasePriceMode==='manual'){
+        clearField(document.getElementById('gp-price'));
+        lsSet('manualPurchasePrice', null);
+      } else {
+        syncPricesIntoForms();
+      }
+      applyPriceModeUI();
+      renderGoldPurchaseResult();
+    });
+  });
+  document.querySelectorAll('[data-price-lock="gp"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.purchasePriceLocked = !state.purchasePriceLocked;
+      applyPriceModeUI();
+      toast(state.purchasePriceLocked ? 'نرخ خرید قفل شد' : 'قفل نرخ خرید باز شد');
+    });
+  });
+  document.querySelectorAll('[data-price-seg="cs"] .seg-mini-opt, [data-price-seg="cr"] .seg-mini-opt, [data-price-seg="cp"] .seg-mini-opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      state.coinPriceMode = o.dataset.mode;
+      lsSet('coinPriceMode', state.coinPriceMode);
+      if(state.coinPriceMode==='manual'){
+        clearField(document.getElementById('cs-price'));
+        clearField(document.getElementById('cr-price'));
+        clearField(document.getElementById('cp-price'));
+        ['emami','bahar','half','quarter','gerami'].forEach(t=>lsSet('manualCoinPrice_'+t, null));
+      } else {
+        syncPricesIntoForms();
+      }
+      applyPriceModeUI();
+      renderCoinSaleResult();
+      renderCoinPurchaseResult();
+    });
+  });
+  document.querySelectorAll('[data-price-lock="cs"], [data-price-lock="cr"], [data-price-lock="cp"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.coinPriceLocked = !state.coinPriceLocked;
+      applyPriceModeUI();
+      toast(state.coinPriceLocked ? 'قیمت سکه قفل شد' : 'قفل قیمت سکه باز شد');
+    });
+  });
+
+  /* ---------------- CHIPS BUILDERS ---------------- */
+  function populateWageSelect(selectEl){
+    selectEl.innerHTML = WAGE_OPTIONS.map(o=>`<option value="${o.value}">${o.label}</option>`).join('');
+  }
+
+  /* Dropdown-with-manual-reveal used for the profit (سود) fields.
+     Wraps a <select>, a hidden manual wrap+input, and a hidden field that
+     always holds the actual numeric value the calculators read from. */
+  function setupPercentSelector(selectEl, manualWrapEl, manualInputEl, hiddenEl, onChange){
+    selectEl.innerHTML = PROFIT_PRESETS.map(v=>`<option value="${v}">${v}%</option>`).join('') + `<option value="manual">دستی</option>`;
+    function apply(v){
+      hiddenEl.value = v;
+      onChange();
+    }
+    selectEl.addEventListener('change', ()=>{
+      if(selectEl.value==='manual'){
+        manualWrapEl.style.display='';
+        manualInputEl.focus();
+        apply(parseFloat(manualInputEl.value)||0);
+      } else {
+        manualWrapEl.style.display='none';
+        apply(parseFloat(selectEl.value));
+      }
+    });
+    manualInputEl.addEventListener('input', ()=> apply(parseFloat(manualInputEl.value)||0));
+    return {
+      setValue(v){
+        const isPreset = PROFIT_PRESETS.includes(v);
+        if(isPreset){
+          selectEl.value = String(v);
+          manualWrapEl.style.display='none';
+        } else {
+          selectEl.value = 'manual';
+          manualWrapEl.style.display='';
+          manualInputEl.value = v;
+        }
+        hiddenEl.value = v;
+      }
+    };
+  }
+
+  function buildChips(containerId, values, suffix, targetInputId, selectedValue, extraOnClick){
+    const wrap = document.getElementById(containerId);
+    wrap.innerHTML = '';
+    values.forEach(v=>{
+      const c = document.createElement('div');
+      c.className = 'chip';
+      if(v===selectedValue) c.classList.add('active');
+      c.textContent = v + suffix;
+      c.addEventListener('click', ()=>{
+        wrap.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+        c.classList.add('active');
+        const target = document.getElementById(targetInputId);
+        if(target.dataset.raw!==undefined){ setMoneyValue(target, v); } else { target.value = v; }
+        if(extraOnClick) extraOnClick(v);
+        computeAll();
+      });
+      wrap.appendChild(c);
+    });
+  }
+
+  /* ---------------- CALCULATIONS (mirrors the Flutter domain usecases) ---------------- */
+  function calcGoldSale(weight, price, wagePct, profitPct, taxMode){
+    if(weight<=0 || price<=0) return null;
+    const wageAmt = price*(wagePct/100);
+    const step1 = price+wageAmt;
+    const profitAmt = step1*(profitPct/100);
+    const step2 = step1+profitAmt;
+
+    let taxAmt = 0;
+    let taxLabel = '';
+    switch(taxMode){
+      case 'wage_profit_9':
+        taxAmt = (wageAmt+profitAmt)*(9/100);
+        taxLabel = '۹٪ روی (اجرت + سود)';
+        break;
+      case 'total_1':
+        taxAmt = step2*(1/100);
+        taxLabel = '۱٪ روی کل مبلغ';
+        break;
+      case 'total_2':
+        taxAmt = step2*(2/100);
+        taxLabel = '۲٪ روی کل مبلغ';
+        break;
+      case 'total_3':
+        taxAmt = step2*(3/100);
+        taxLabel = '۳٪ روی کل مبلغ';
+        break;
+      case 'none':
+      default:
+        taxAmt = 0;
+        taxLabel = 'بدون مالیات';
+        break;
+    }
+
+    const finalPerGram = step2+taxAmt;
+    return {
+      basePrice: price*weight,
+      wageAmount: wageAmt*weight,
+      profitAmount: profitAmt*weight,
+      taxAmount: taxAmt*weight,
+      taxLabel,
+      finalPrice: finalPerGram*weight,
+      finalPerGram
+    };
+  }
+  function calcGoldPurchase(weight, rate){
+    if(weight<=0||rate<=0) return null;
+    return {payable: weight*rate};
+  }
+  function calcCoinSale(qty, unitPrice, profitPerCoin){
+    if(qty<=0||unitPrice<=0) return null;
+    const base = qty*unitPrice;
+    const profitAmt = qty*profitPerCoin;
+    return {basePrice:base, profitAmount:profitAmt, finalPrice: base+profitAmt};
+  }
+  function calcCoinPurchase(qty, unitPrice, marginPerCoin){
+    if(qty<=0||unitPrice<=0) return null;
+    const base = qty*unitPrice;
+    const marginAmt = qty*marginPerCoin;
+    return {basePrice:base, marginAmount:marginAmt, payable: base-marginAmt};
+  }
+
+  /* ---------------- RENDER RESULTS ---------------- */
+  function renderGoldSaleResult(){
+    const container = document.getElementById('gs-result');
+    if(!state.goldReverse){
+      const weight = num(document.getElementById('gs-weight'));
+      const price = moneyVal(document.getElementById('gs-price'));
+      const wage = num(document.getElementById('gs-wage'));
+      const profit = num(document.getElementById('gs-profit'));
+      const tax = num(document.getElementById('gs-tax'));
+      const taxMode = document.getElementById('gs-tax').value;
+      const r = calcGoldSale(weight, price, wage, profit, taxMode);
+      if(!r){ container.innerHTML = emptyResult('وزن و قیمت را وارد کنید'); return; }
+      container.innerHTML = `
+        <div class="breakdown-row"><span>قیمت پایه</span><b>${fmt(r.basePrice)}</b></div>
+        <div class="breakdown-row"><span>اجرت</span><b>${fmt(r.wageAmount)}</b></div>
+        <div class="breakdown-row"><span>سود</span><b>${fmt(r.profitAmount)}</b></div>
+        <div class="breakdown-row"><span>مالیات (${r.taxLabel})</span><b>${fmt(r.taxAmount)}</b></div>
+        <div class="final-label">قیمت نهایی</div>
+        <div class="final-value">${fmt(r.finalPrice)}</div>
+        <div class="final-unit">${unitLabel()}</div>
+        ${actionsRow('gold-sale')}
+      `;
+      bindActions(container, 'فروش طلا', `وزن ${weight} گرم — قیمت نهایی ${fmt(r.finalPrice)} ${unitLabel()}`, r.finalPrice, {weight, price, wage, profit, tax});
+    } else {
+      const budget = moneyVal(document.getElementById('gr-budget'));
+      const price = moneyVal(document.getElementById('gr-price'));
+      const wage = num(document.getElementById('gr-wage'));
+      const profit = num(document.getElementById('gr-profit'));
+      const tax = num(document.getElementById('gr-tax'));
+      const taxMode = document.getElementById('gr-tax').value;
+      const one = calcGoldSale(1, price, wage, profit, taxMode);
+      if(!one || budget<=0){ container.innerHTML = emptyResult('بودجه و قیمت را وارد کنید'); return; }
+      const maxWeight = budget/one.finalPerGram;
+      const breakdown = calcGoldSale(maxWeight, price, wage, profit, tax);
+      container.innerHTML = `
+        <div class="breakdown-row"><span>حداکثر وزن قابل خرید</span><b>${maxWeight.toLocaleString('fa-IR',{maximumFractionDigits:3})} گرم</b></div>
+        <div class="breakdown-row"><span>قیمت پایه</span><b>${fmt(breakdown.basePrice)}</b></div>
+        <div class="breakdown-row"><span>اجرت</span><b>${fmt(breakdown.wageAmount)}</b></div>
+        <div class="breakdown-row"><span>سود</span><b>${fmt(breakdown.profitAmount)}</b></div>
+        <div class="breakdown-row"><span>مالیات</span><b>${fmt(breakdown.taxAmount)}</b></div>
+        <div class="final-label">قیمت نهایی</div>
+        <div class="final-value">${fmt(breakdown.finalPrice)}</div>
+        <div class="final-unit">${unitLabel()}</div>
+        ${actionsRow('gold-sale-reverse')}
+      `;
+      bindActions(container, 'محاسبه معکوس طلا', `بودجه ${fmt(budget)} → حداکثر ${maxWeight.toFixed(3)} گرم`, breakdown.finalPrice, {maxWeight, price, wage, profit, tax});
+    }
+  }
+
+  function renderGoldPurchaseResult(){
+    const container = document.getElementById('gp-result');
+    const weight = num(document.getElementById('gp-weight'));
+    const rate = moneyVal(document.getElementById('gp-price'));
+    const r = calcGoldPurchase(weight, rate);
+    if(!r){ container.innerHTML = emptyResult('وزن و نرخ خرید را وارد کنید'); return; }
+    container.innerHTML = `
+      <div class="final-label">مبلغ قابل پرداخت به مشتری</div>
+      <div class="final-value">${fmt(r.payable)}</div>
+      <div class="final-unit">${unitLabel()}</div>
+      ${actionsRow('gold-purchase')}
+    `;
+    bindActions(container, 'خرید طلا', `وزن ${weight} گرم — پرداختی ${fmt(r.payable)} ${unitLabel()}`, r.payable, {weight, rate});
+  }
+
+  function renderCoinSaleResult(){
+    const container = document.getElementById('cs-result');
+    if(!state.coinReverse){
+      const qty = num(document.getElementById('cs-qty'));
+      const price = moneyVal(document.getElementById('cs-price'));
+      const profit = moneyVal(document.getElementById('cs-profit'));
+      const r = calcCoinSale(qty, price, profit);
+      if(!r){ container.innerHTML = emptyResult('تعداد و قیمت را وارد کنید'); return; }
+      container.innerHTML = `
+        <div class="breakdown-row"><span>قیمت پایه</span><b>${fmt(r.basePrice)}</b></div>
+        <div class="breakdown-row"><span>سود (${fmt(profit)} تومان/سکه)</span><b>${fmt(r.profitAmount)}</b></div>
+        <div class="final-label">قیمت نهایی</div>
+        <div class="final-value">${fmt(r.finalPrice)}</div>
+        <div class="final-unit">${unitLabel()}</div>
+        ${actionsRow('coin-sale')}
+      `;
+      bindActions(container, `فروش ${coinMeta[state.coinType].label}`, `${qty} عدد — قیمت نهایی ${fmt(r.finalPrice)} ${unitLabel()}`, r.finalPrice, {qty, price, profit});
+    } else {
+      const budget = moneyVal(document.getElementById('cr-budget'));
+      const price = moneyVal(document.getElementById('cr-price'));
+      const profit = moneyVal(document.getElementById('cr-profit'));
+      if(price<=0 || budget<=0){ container.innerHTML = emptyResult('بودجه و قیمت را وارد کنید'); return; }
+      const finalUnit = price+profit;
+      const maxQty = Math.floor(budget/finalUnit);
+      const totalFinal = maxQty*finalUnit;
+      container.innerHTML = `
+        <div class="breakdown-row"><span>حداکثر تعداد قابل خرید</span><b>${maxQty.toLocaleString('fa-IR')} عدد</b></div>
+        <div class="breakdown-row"><span>قیمت واحد نهایی</span><b>${fmt(finalUnit)}</b></div>
+        <div class="final-label">جمع کل</div>
+        <div class="final-value">${fmt(totalFinal)}</div>
+        <div class="final-unit">${unitLabel()}</div>
+        ${actionsRow('coin-sale-reverse')}
+      `;
+      bindActions(container, `محاسبه معکوس ${coinMeta[state.coinType].label}`, `بودجه ${fmt(budget)} → ${maxQty} عدد`, totalFinal, {maxQty, price, profit});
+    }
+  }
+
+  function renderCoinPurchaseResult(){
+    const container = document.getElementById('cp-result');
+    const qty = num(document.getElementById('cp-qty'));
+    const price = moneyVal(document.getElementById('cp-price'));
+    const margin = moneyVal(document.getElementById('cp-margin'));
+    const r = calcCoinPurchase(qty, price, margin);
+    if(!r){ container.innerHTML = emptyResult('تعداد و قیمت را وارد کنید'); return; }
+    container.innerHTML = `
+      <div class="breakdown-row"><span>قیمت پایه</span><b>${fmt(r.basePrice)}</b></div>
+      <div class="breakdown-row"><span>سود خرید (${fmt(margin)} تومان/سکه)</span><b>-${fmt(r.marginAmount)}</b></div>
+      <div class="final-label">مبلغ قابل پرداخت به مشتری</div>
+      <div class="final-value">${fmt(r.payable)}</div>
+      <div class="final-unit">${unitLabel()}</div>
+      ${actionsRow('coin-purchase')}
+    `;
+    bindActions(container, `خرید ${coinMeta[state.coinType].label}`, `${qty} عدد — پرداختی ${fmt(r.payable)} ${unitLabel()}`, r.payable, {qty, price, margin});
+  }
+
+  function unitLabel(){ return state.currency==='toman' ? 'تومان' : 'ریال'; }
+  function emptyResult(msg){ return `<div style="text-align:center; color:var(--ink-faint); font-size:13px; padding:14px 0;">${msg}</div>`; }
+  function actionsRow(kind){
+    return `<div class="actions-row">
+      <div class="action-btn" data-act="copy"><span class="ic">📋</span>کپی</div>
+      <div class="action-btn" data-act="share"><span class="ic">↗️</span>اشتراک</div>
+      <div class="action-btn" data-act="save"><span class="ic">💾</span>ذخیره</div>
+      <div class="action-btn" data-act="clear"><span class="ic">✕</span>پاک کردن</div>
+    </div>`;
+  }
+  function bindActions(container, typeLabel, desc, finalPrice, payload){
+    const copyBtn = container.querySelector('[data-act="copy"]');
+    const shareBtn = container.querySelector('[data-act="share"]');
+    const saveBtn = container.querySelector('[data-act="save"]');
+    const clearBtn = container.querySelector('[data-act="clear"]');
+    if(copyBtn) copyBtn.onclick = ()=>copyText(fmt(finalPrice));
+    if(shareBtn) shareBtn.onclick = ()=>shareText(typeLabel, `${typeLabel}\n${desc}`);
+    if(saveBtn) saveBtn.onclick = ()=>{
+      state.history.unshift({id:Date.now(), type:typeLabel, desc, amount:finalPrice, ts:new Date()});
+      toast('در تاریخچه ذخیره شد ✓');
+      renderHistory();
+    };
+    if(clearBtn) clearBtn.onclick = ()=>{
+      container.closest('.screen').querySelectorAll('input').forEach(i=>{
+        if(i.id!=='gs-price' && i.id!=='gp-price' && i.id!=='cs-price' && i.id!=='cp-price' && i.id!=='gr-price' && i.id!=='cr-price'){
+          i.value='';
+          delete i.dataset.raw;
+        }
+      });
+      computeAll();
+    };
+  }
+
+  function computeAll(){
+    renderGoldSaleResult();
+    renderGoldPurchaseResult();
+    renderCoinSaleResult();
+    renderCoinPurchaseResult();
+  }
+
+  /* ---------------- HISTORY ---------------- */
+  let histFilter = 'all';
+  function renderHistoryFilters(){
+    const wrap = document.getElementById('histFilters');
+    const filters = [
+      {k:'all', l:'همه'},{k:'فروش طلا', l:'فروش طلا'},{k:'خرید طلا', l:'خرید طلا'},
+    ];
+    wrap.innerHTML='';
+    ['all','طلا','سکه'].forEach(k=>{
+      const c = document.createElement('div');
+      c.className = 'chip' + (histFilter===k?' active':'');
+      c.textContent = k==='all' ? 'همه' : k;
+      c.onclick = ()=>{ histFilter=k; renderHistoryFilters(); renderHistory(); };
+      wrap.appendChild(c);
+    });
+  }
+  function renderHistory(){
+    const list = document.getElementById('histList');
+    const q = (document.getElementById('histSearch').value||'').trim();
+    let items = state.history;
+    if(histFilter!=='all') items = items.filter(i=>i.type.includes(histFilter));
+    if(q) items = items.filter(i=> (i.type+i.desc).includes(q));
+    if(items.length===0){
+      list.innerHTML = `<div class="empty-state"><span class="ic">🕐</span>هنوز محاسبه‌ای ذخیره نشده</div>`;
+      return;
+    }
+    list.innerHTML = items.map(it=>`
+      <div class="hist-item" data-id="${it.id}">
+        <div>
+          <div class="hist-item-type">${it.type}</div>
+          <div class="hist-item-desc">${it.desc}</div>
+          <div class="hist-item-price">${fmt(it.amount)} ${unitLabel()}</div>
+        </div>
+        <div class="hist-item-actions">
+          <div class="hist-icon" data-hact="copy">📋</div>
+          <div class="hist-icon" data-hact="share">↗️</div>
+          <div class="hist-icon" data-hact="del">🗑️</div>
+        </div>
+      </div>
+    `).join('');
+    list.querySelectorAll('.hist-item').forEach(el=>{
+      const id = Number(el.dataset.id);
+      const item = state.history.find(x=>x.id===id);
+      el.querySelector('[data-hact="copy"]').onclick = ()=>copyText(fmt(item.amount));
+      el.querySelector('[data-hact="share"]').onclick = ()=>shareText(item.type, `${item.type}\n${item.desc}`);
+      el.querySelector('[data-hact="del"]').onclick = ()=>{
+        state.history = state.history.filter(x=>x.id!==id);
+        renderHistory();
+        toast('حذف شد');
+      };
+    });
+  }
+
+  /* ---------------- NAV / TABS ---------------- */
+  document.querySelectorAll('.nav-item').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+      item.classList.add('active');
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById('screen-'+item.dataset.screen).classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('[data-goldmode]').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-goldmode]').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      state.goldMode = t.dataset.goldmode;
+      document.getElementById('gold-sale-view').style.display = state.goldMode==='sale' ? '' : 'none';
+      document.getElementById('gold-purchase-view').style.display = state.goldMode==='purchase' ? '' : 'none';
+    });
+  });
+  document.querySelectorAll('[data-coinmode]').forEach(t=>{
+    t.addEventListener('click', ()=>{
+      document.querySelectorAll('[data-coinmode]').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      state.coinMode = t.dataset.coinmode;
+      document.getElementById('coin-sale-view').style.display = state.coinMode==='sale' ? '' : 'none';
+      document.getElementById('coin-purchase-view').style.display = state.coinMode==='purchase' ? '' : 'none';
+    });
+  });
+
+  document.getElementById('goldReverseToggle').addEventListener('click', ()=>{
+    state.goldReverse = !state.goldReverse;
+    document.getElementById('gold-sale-normal').style.display = state.goldReverse ? 'none':'';
+    document.getElementById('gold-sale-reverse').style.display = state.goldReverse ? '':'none';
+    document.getElementById('goldReverseToggle').textContent = state.goldReverse ? '↩️ بازگشت به محاسبه عادی' : '🔄 محاسبه معکوس (بودجه → وزن)';
+    computeAll();
+  });
+  document.getElementById('coinReverseToggle').addEventListener('click', ()=>{
+    state.coinReverse = !state.coinReverse;
+    document.getElementById('coin-sale-normal').style.display = state.coinReverse ? 'none':'';
+    document.getElementById('coin-sale-reverse').style.display = state.coinReverse ? '':'none';
+    document.getElementById('coinReverseToggle').textContent = state.coinReverse ? '↩️ بازگشت به محاسبه عادی' : '🔄 محاسبه معکوس (بودجه → تعداد)';
+    computeAll();
+  });
+
+  /* ---------------- COIN TYPE SELECTOR ---------------- */
+  function renderCoinTypes(){
+    const wrap = document.getElementById('coinTypes');
+    wrap.innerHTML='';
+    Object.keys(coinMeta).forEach(k=>{
+      const el = document.createElement('div');
+      el.className = 'coin-type' + (state.coinType===k?' active':'');
+      el.textContent = coinMeta[k].label;
+      el.onclick = ()=>{
+        state.coinType = k;
+        renderCoinTypes();
+        if(state.coinPriceMode==='manual'){
+          clearField(document.getElementById('cs-price'));
+          clearField(document.getElementById('cr-price'));
+          clearField(document.getElementById('cp-price'));
+        } else {
+          syncPricesIntoForms();
+        }
+        computeAll();
+      };
+      wrap.appendChild(el);
+    });
+  }
+
+  /* ---------------- THEME ---------------- */
+  document.getElementById('themeBtn').addEventListener('click', ()=>{
+    const newTheme = state.theme==='dark'?'light':'dark';
+    setTheme(newTheme);
+    lsSet('theme', newTheme);
+  });
+  function setTheme(t){
+    state.theme = t;
+    document.documentElement.setAttribute('data-theme', t);
+    document.querySelectorAll('[data-theme-opt]').forEach(o=>o.classList.toggle('active', o.dataset.themeOpt===t));
+    lsSet('theme', t);
+  }
+
+  /* ---------------- INPUT LISTENERS ---------------- */
+  document.getElementById('gs-weight').addEventListener('input', renderGoldSaleResult);
+  document.getElementById('gs-tax').addEventListener('change', renderGoldSaleResult);
+  document.getElementById('gs-wage').addEventListener('change', renderGoldSaleResult);
+  document.getElementById('gr-wage').addEventListener('change', renderGoldSaleResult);
+  document.getElementById('gr-tax').addEventListener('change', renderGoldSaleResult);
+  const gsProfitCtl = setupPercentSelector(
+    document.getElementById('gs-profit-select'), document.getElementById('gs-profit-manual-wrap'),
+    document.getElementById('gs-profit-manual'), document.getElementById('gs-profit'), renderGoldSaleResult);
+  const grProfitCtl = setupPercentSelector(
+    document.getElementById('gr-profit-select'), document.getElementById('gr-profit-manual-wrap'),
+    document.getElementById('gr-profit-manual'), document.getElementById('gr-profit'), renderGoldSaleResult);
+  wireMoneyInput(document.getElementById('gs-price'), ()=>{
+    const v = moneyVal(document.getElementById('gs-price'));
+    if(state.goldPriceMode==='manual' && v>0) lsSet('manualGoldPrice', v);
+    renderGoldSaleResult();
+  });
+  wireMoneyInput(document.getElementById('gr-budget'), renderGoldSaleResult);
+  wireMoneyInput(document.getElementById('gr-price'), ()=>{
+    const v = moneyVal(document.getElementById('gr-price'));
+    if(state.goldPriceMode==='manual' && v>0) lsSet('manualGoldPrice', v);
+    renderGoldSaleResult();
+  });
+
+  document.getElementById('gp-weight').addEventListener('input', renderGoldPurchaseResult);
+  wireMoneyInput(document.getElementById('gp-price'), ()=>{
+    const v = moneyVal(document.getElementById('gp-price'));
+    if(state.purchasePriceMode==='manual' && v>0) lsSet('manualPurchasePrice', v);
+    renderGoldPurchaseResult();
+  });
+
+  document.getElementById('cs-qty').addEventListener('input', renderCoinSaleResult);
+  wireMoneyInput(document.getElementById('cs-price'), ()=>{
+    const v = moneyVal(document.getElementById('cs-price'));
+    if(state.coinPriceMode==='manual' && v>0) lsSet('manualCoinPrice_'+state.coinType, v);
+    renderCoinSaleResult();
+  });
+  wireMoneyInput(document.getElementById('cs-profit'), renderCoinSaleResult);
+  wireMoneyInput(document.getElementById('cr-budget'), renderCoinSaleResult);
+  wireMoneyInput(document.getElementById('cr-price'), ()=>{
+    const v = moneyVal(document.getElementById('cr-price'));
+    if(state.coinPriceMode==='manual' && v>0) lsSet('manualCoinPrice_'+state.coinType, v);
+    renderCoinSaleResult();
+  });
+  wireMoneyInput(document.getElementById('cr-profit'), renderCoinSaleResult);
+
+  document.getElementById('cp-qty').addEventListener('input', renderCoinPurchaseResult);
+  wireMoneyInput(document.getElementById('cp-price'), ()=>{
+    const v = moneyVal(document.getElementById('cp-price'));
+    if(state.coinPriceMode==='manual' && v>0) lsSet('manualCoinPrice_'+state.coinType, v);
+    renderCoinPurchaseResult();
+  });
+  wireMoneyInput(document.getElementById('cp-margin'), renderCoinPurchaseResult);
+
+  document.getElementById('histSearch').addEventListener('input', renderHistory);
+
+  /* ---------------- SETTINGS BINDINGS ---------------- */
+  document.getElementById('set-wage').addEventListener('change', e=>{ state.defaults.wage = parseFloat(e.target.value)||0; lsSet('defaultWage', state.defaults.wage); refreshDefaultsIntoInputs(); computeAll(); });
+  document.getElementById('set-profit').addEventListener('input', e=>{ state.defaults.profit = parseFloat(e.target.value)||0; lsSet('defaultProfit', state.defaults.profit); refreshDefaultsIntoInputs(); computeAll(); });
+  document.getElementById('set-tax-mode').addEventListener('change', e=>{
+    state.defaults.taxMode = e.target.value;
+    lsSet('defaultTaxMode', state.defaults.taxMode);
+    refreshDefaultsIntoInputs();
+    computeAll();
+  });
+  wireMoneyInput(document.getElementById('set-gold-purchase-discount'), ()=>{
+    state.defaults.goldPurchaseDiscount = moneyVal(document.getElementById('set-gold-purchase-discount'));
+    lsSet('goldPurchaseDiscount', state.defaults.goldPurchaseDiscount);
+    syncPricesIntoForms();
+    renderGoldPurchaseResult();
+    refreshComputedTicker();
+    renderBoard();
+  });
+  wireMoneyInput(document.getElementById('set-coin-sale-profit'), ()=>{
+    state.defaults.coinSaleProfit = moneyVal(document.getElementById('set-coin-sale-profit'));
+    lsSet('coinSaleProfit', state.defaults.coinSaleProfit);
+    setMoneyValue(document.getElementById('cs-profit'), state.defaults.coinSaleProfit);
+    setMoneyValue(document.getElementById('cr-profit'), state.defaults.coinSaleProfit);
+    computeAll();
+  });
+  wireMoneyInput(document.getElementById('set-coin-purchase-margin'), ()=>{
+    state.defaults.coinPurchaseMargin = moneyVal(document.getElementById('set-coin-purchase-margin'));
+    lsSet('coinPurchaseMargin', state.defaults.coinPurchaseMargin);
+    setMoneyValue(document.getElementById('cp-margin'), state.defaults.coinPurchaseMargin);
+    computeAll();
+  });
+  document.querySelectorAll('#seg-default-price-mode .seg-opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      document.querySelectorAll('#seg-default-price-mode .seg-opt').forEach(x=>x.classList.remove('active'));
+      o.classList.add('active');
+      const newMode = o.dataset.priceDefault;
+      state.defaultPriceMode = newMode;
+      lsSet('defaultPriceMode', newMode);
+      state.goldPriceMode = newMode;
+      state.purchasePriceMode = newMode;
+      state.coinPriceMode = newMode;
+      lsSet('goldPriceMode', newMode);
+      lsSet('purchasePriceMode', newMode);
+      lsSet('coinPriceMode', newMode);
+      if(newMode === 'manual'){
+        clearField(document.getElementById('gs-price'));
+        clearField(document.getElementById('gr-price'));
+        clearField(document.getElementById('gp-price'));
+        clearField(document.getElementById('cs-price'));
+        clearField(document.getElementById('cr-price'));
+        clearField(document.getElementById('cp-price'));
+        lsSet('manualGoldPrice', null);
+        lsSet('manualPurchasePrice', null);
+        ['emami','bahar','half','quarter','gerami'].forEach(t=>lsSet('manualCoinPrice_'+t, null));
+        toast('همهٔ قیمت‌ها روی حالت دستی قرار گرفت — قیمت‌ها را وارد کنید');
+      } else {
+        syncPricesIntoForms();
+        toast('همهٔ قیمت‌ها روی حالت آنلاین قرار گرفت');
+      }
+      applyPriceModeUI();
+      computeAll();
+    });
+  });
+
+  /* ---------------- BOARD (تابلو) ---------------- */
+  function renderBoard(){
+    const grid = document.getElementById('boardGrid');
+    if(!grid) return;
+    grid.innerHTML = tickerDefs.map(d=>`
+      <div class="board-tile">
+        <div class="board-tile-label">${d.label}</div>
+        <div class="board-tile-value">${fmt(d.computed ? computeGoldPurchaseRate() : state.prices[d.key])}</div>
+        <div class="board-tile-unit">${d.unit}</div>
+      </div>
+    `).join('');
+    document.getElementById('boardShopName').textContent = state.shopName;
+  }
+  function updateBoardClock(){
+    const el = document.getElementById('boardClock');
+    if(!el || !document.getElementById('boardOverlay').classList.contains('active')) return;
+    el.textContent = new Date().toLocaleString('fa-IR', {hour:'2-digit', minute:'2-digit', weekday:'long', day:'numeric', month:'long'});
+  }
+  setInterval(updateBoardClock, 1000*30);
+  document.getElementById('openBoardBtn').addEventListener('click', ()=>{
+    renderBoard();
+    updateBoardClock();
+    document.getElementById('boardOverlay').classList.add('active');
+    if(document.documentElement.requestFullscreen){ document.documentElement.requestFullscreen().catch(()=>{}); }
+  });
+  document.getElementById('boardExit').addEventListener('click', ()=>{
+    document.getElementById('boardOverlay').classList.remove('active');
+    if(document.exitFullscreen && document.fullscreenElement){ document.exitFullscreen().catch(()=>{}); }
+  });
+
+  document.querySelectorAll('#seg-currency .seg-opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      document.querySelectorAll('#seg-currency .seg-opt').forEach(x=>x.classList.remove('active'));
+      o.classList.add('active');
+      state.currency = o.dataset.unit;
+      lsSet('currency', state.currency);
+      computeAll(); renderHistory();
+    });
+  });
+  document.querySelectorAll('#seg-theme .seg-opt').forEach(o=>{
+    o.addEventListener('click', ()=> setTheme(o.dataset.themeOpt));
+  });
+  document.querySelectorAll('#seg-round .seg-opt').forEach(o=>{
+    o.addEventListener('click', ()=>{
+      document.querySelectorAll('#seg-round .seg-opt').forEach(x=>x.classList.remove('active'));
+      o.classList.add('active');
+      state.round = o.dataset.round;
+      lsSet('round', state.round);
+      computeAll(); renderHistory();
+    });
+  });
+
+  function refreshDefaultsIntoInputs(){
+    document.getElementById('gs-tax').value = state.defaults.taxMode;
+    document.getElementById('gr-tax').value = state.defaults.taxMode;
+    document.getElementById('gs-wage').value = state.defaults.wage;
+    document.getElementById('gr-wage').value = state.defaults.wage;
+    gsProfitCtl.setValue(state.defaults.profit);
+    grProfitCtl.setValue(state.defaults.profit);
+  }
+
+  /* ---------------- INIT ---------------- */
+  function init(){
+    setTheme(state.theme);
+    document.querySelectorAll('#seg-currency .seg-opt').forEach(o=>o.classList.toggle('active', o.dataset.unit===state.currency));
+    document.querySelectorAll('#seg-default-price-mode .seg-opt').forEach(o=>o.classList.toggle('active', o.dataset.priceDefault===state.defaultPriceMode));
+    document.querySelectorAll('#seg-round .seg-opt').forEach(o=>o.classList.toggle('active', o.dataset.round===state.round));
+
+    // Price modes are already loaded from localStorage in state initialization.
+    // defaultPriceMode is only used for FIRST visit (when no localStorage exists).
+    // Do NOT override persisted manual modes here.
+
+    populateWageSelect(document.getElementById('gs-wage'));
+    populateWageSelect(document.getElementById('gr-wage'));
+    populateWageSelect(document.getElementById('set-wage'));
+    document.getElementById('set-wage').value = state.defaults.wage;
+    document.getElementById('set-profit').value = state.defaults.profit;
+    document.getElementById('set-tax-mode').value = state.defaults.taxMode;
+    setMoneyValue(document.getElementById('set-gold-purchase-discount'), state.defaults.goldPurchaseDiscount);
+    setMoneyValue(document.getElementById('set-coin-sale-profit'), state.defaults.coinSaleProfit);
+    setMoneyValue(document.getElementById('set-coin-purchase-margin'), state.defaults.coinPurchaseMargin);
+
+    renderTicker();
+    renderCoinTypes();
+    refreshDefaultsIntoInputs();
+    syncPricesIntoForms();
+    applyPriceModeUI();
+    setMoneyValue(document.getElementById('cs-profit'), state.defaults.coinSaleProfit);
+    setMoneyValue(document.getElementById('cr-profit'), state.defaults.coinSaleProfit);
+    setMoneyValue(document.getElementById('cp-margin'), state.defaults.coinPurchaseMargin);
+    renderHistoryFilters();
+    renderHistory();
+    renderBoard();
+    computeAll();
+  }
+  /* ---------------- CLEAR STORAGE ---------------- */
+  document.getElementById('clearStorageBtn').addEventListener('click', ()=>{
+    if(confirm('آیا مطمئنید؟ همهٔ داده‌های ذخیره‌شده (حالت دستی/آنلاین، قیمت‌های دستی و تنظیمات) پاک می‌شوند.')){
+      localStorage.removeItem(LS_KEY);
+      toast('همهٔ داده‌ها پاک شد — صفحه رفرش می‌شود');
+      setTimeout(()=>location.reload(), 1200);
+    }
+  });
+
+  init();
+})();
+</script>
+<script>
+  // Registers only when served over http/https (not on a plain local file://
+  // open), since that's what real installable/offline PWA behavior requires.
+  if('serviceWorker' in navigator && (location.protocol==='https:' || location.protocol==='http:')){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+</script>
+</body>
+</html>
